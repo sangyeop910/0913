@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html>
+
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="seekbar.js" type="text/javascript"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.0.min.js"></script>
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+<div class="seekbar_btn"></div>
+<div class="seekbar_bg"></div>
+
+
+<style>
+    #tooltip {
+        position: absolute;
+        text-align: center;
+        padding: 10px;
+        top: 231px;
+        left: 480px;
+        border-radius: 2px;
+        background-color: white;
+        box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.25);
+        font-size: 8px;
+    }
+    
+    .seekbar {
+        margin: 0;
+        padding: 0;
+        width: 500px;
+        height: 8px;
+        border: 1px solid black;
+        position: relative;
+        cursor: pointer;
+        border-radius: 1.1em;
+    }
+    
+    .seekbar_btn,
+    .seekbar_bg {
+        padding: 0;
+        border-radius: 1.1em;
+        position: absolute;
+        left: 0;
+    }
+    /* 
+     * Seekber Circle Button
+     */
+    
+    .seekbar_btn {
+        margin: -5px 0 0 -5px;
+        left: 20px;
+        height: 9px;
+        width: 9px;
+        background: red;
+        z-index: 2;
+    }
+    
+    .seekbar_btn:hover,
+    .seekbar_btn:active {
+        background: #bbb;
+    }
+    /* 
+     * Seekber Background
+     */
+    
+    .seekbar_bg {
+        margin: 0;
+        background: black;
+        height: 100%;
+        z-index: 1;
+    }
+</style>
+
+<script>
+    const tooltip = d3.select("#my_dataviz")
+        .append('div')
+        .attr("id", "tooltip")
+        .style("opacity", "1")
+        // set the dimensions and margins of the graph
+
+    var margin = {
+            top: 10,
+            right: 30,
+            bottom: 30,
+            left: 60
+        },
+        width = 500 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    var svg = d3.select("#my_dataviz")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    //Read the data
+    d3.json("https://raw.githubusercontent.com/sangyeop910/sangyeop910.github.io/main/file.json", function(data) {
+
+        var color = d3.scaleOrdinal()
+            .domain(["0", "1"])
+            .range(["#4D8ED1", "#FF9E45"])
+
+        // Add X axis
+        var x = d3.scaleLinear()
+            .domain([-30, 35])
+            .range([0, width]);
+        svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x).tickSize(-height * 1));
+
+        // Add Y axis
+        var y = d3.scaleLinear()
+            .domain([-50, 40])
+            .range([height, 0]);
+        svg.append("g")
+            .call(d3.axisLeft(y).tickSize(-width * 1));
+
+        // Add dots
+        svg.append('g')
+            .selectAll("dot")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("cx", function(d) {
+                return x(d.X);
+            })
+            .attr("cy", function(d) {
+                return y(d.Y);
+            })
+            .attr("r", 3)
+            .style("stroke", function(d) {
+                return color(d.is_legendary)
+            })
+            .on("mouseover", function(d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", 1);
+                tooltip.text("name : " + d.name + "\n" + "hp : " + d.hp + "\n" + "speed : " + d.speed + "\n" + "attack : " + d.attck + "\n" + "defense : " + d.defense + "\n" + "sp_attack : " + d.sp_attack + "\n" + "sp_defense : " + d.sp_defense + "\n" + "is_legendary : " + d.is_legendary)
+                    .style("left", `${d3.event.pageX}px`)
+                    .style("top", `${d3.event.pageY}px`)
+            })
+            .on("mouseout", function() {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", 0);
+            })
+
+    })
+</script>
+
+</html>
